@@ -1,0 +1,33 @@
+﻿@model MiniShop.ViewModels.ProductDetailView
+<div>
+    <p class="fs-1 mb-0 text-start">@Model.Product.Name</p>
+    <form>
+        <div class="mb-3">
+            <label for="NameProductFormControlInput" class="form-label">Название</label>
+            <input name="Name" type="text" value="@Model.Product.Name" class="form-control" id="NameProductFormControlInput" placeholder="Название">
+        </div>
+        <div class="mb-3">
+            <label for="DescriptionProductFormControlInput" class="form-label">Описание</label>
+            <textarea name="Description" type="text" class="form-control" id="DescriptionProductFormControlInput" rows="3" placeholder="Описание">@Model.Product.Description</textarea>
+        </div>
+        <div class="mb-3">
+            <label for="PriceProductFormControlInput" class="form-label">Цена</label>
+            <input name="Price" type="number" class="form-control" id="PriceProductFormControlInput" placeholder="Цена">
+        </div>
+        <div class="mb-3">
+            <label for="formFile" class="form-label">Изображение</label>
+            <img src="@Model.Product.Image?.FilePath" class="img-thumbnail" alt="image empty">
+            <input name="File" class="form-control" type="file" id="formFile">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Категория</label>
+            <select class="form-select" aria-label="Default select example">
+                <option selected>@Model.Product.Category?.Name</option>
+                @foreach (Category category in Model.Categories)
+                {
+                    <option value="@category.Id">@category.Name</option>
+                }
+            </select>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,28 @@
+﻿@model IEnumerable<Product>
+@{
+    Layout = "/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row row-cols-1 row-cols-md-4 g-4">
+    @foreach (Product product in Model)
+    {
+        <div class="col">
+            <div class="card">
+                <a asp-action="/product/details" asp-route-id="@product.Id">
+                    <img src="@product.Image?.FilePath" class="card-img-top" alt="image empty">
+                </a>
+                <div class="card-body">
+                    <h5 class="card-title">@product.Name</h5>
+                    <p class="card-text">@product.Description</p>
+                </div>
+                <div class="card-footer">
+                    <form method="post" asp-action="AddToCart">
+                        <p class="card-text text-end">Цена: @product.Price</p>
+                        <input type="hidden" name="ProductId" value="@product.Id"/>
+                        <button type="submit" class="btn btn-success w-100 mt-2">Добавить в корзину</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+</div>

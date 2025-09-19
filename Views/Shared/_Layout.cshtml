@@ -1,0 +1,144 @@
+﻿@{
+    var isAuthenticated = Context.User.Identity?.IsAuthenticated ?? false;
+    User? user = null;
+    if (Context.Items.TryGetValue("CurrentUser", out var o) && o is User u)
+    {
+        user = u;
+    }
+}
+
+<!DOCTYPE html>
+
+<html lang="ru">
+<head>
+    <title>MiniShop</title>
+    <link href="~/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/shared/_Layout.css" rel="stylesheet"/>
+    <script src="~/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="/lib/axios/axios.js"></script>
+    <script type="module" src="/js/api/apiClient.js"></script>
+    <script type="module" src="/js/api/authService.js"></script>
+    <script type="module" src="/js/app.js"></script>
+    <script type="module" src="/js/pages/main.js"></script>
+    @* @RenderSection("HeadScripts") *@
+</head>
+<body>
+<div class="main-container">
+    <div>
+        <nav class="navbar navbar-expand-lg bg-body-tertiary">
+            <div class="container-fluid">
+                <span class="navbar-brand">MiniShop</span>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link" href="~/product/index/">Товары</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Категории</a>
+                        </li>
+                    </ul>
+                    @if (!isAuthenticated)
+                    {
+                        <div class="d-flex gap-2">
+                            <button
+                                type="button"
+                                class="btn btn-outline-success"
+                                data-bs-toggle="modal"
+                                data-bs-target="#LoginModal">
+                                Войти
+                            </button>
+                            <button
+                                type="button"
+                                class="btn btn-outline-success"
+                                data-bs-toggle="modal"
+                                data-bs-target="#RegistrationModal">
+                                Зарегестрироваться
+                            </button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="dropdown">
+                            <a class="btn btn-primary dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                @user?.UserName
+                            </a>
+                            <ul class="dropdown-menu">
+                                <form id="logoutForm" action="/auth/logout/" method="post">
+                                    <li><button class="dropdown-item" type="submit">Выйти</button></li>
+                                </form>
+                            </ul>
+                        </div>
+                    }
+                </div>
+            </div>
+        </nav>
+    </div>
+    <div class="body-container">
+        @RenderBody()
+    </div>
+</div>
+
+@if (!isAuthenticated)
+{
+    <div class="modal fade" id="LoginModal" tabindex="-1" aria-labelledby="LoginModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="LoginModalLabel">Авторизация</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="loginForm" action="/auth/login/" method="post">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="LoginFormControlInput" class="form-label">Имя пользователя</label>
+                            <input type="text" class="form-control" id="LoginFormControlInput" name="userName" placeholder="Username">
+                        </div>
+                        <div class="mb-3">
+                            <label for="inputPassword5" class="form-label">Пароль</label>
+                            <input type="password" id="inputPassword5" class="form-control" name="password" aria-describedby="passwordHelpBlock">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                        <button type="submit" class="btn btn-primary">Отправить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="RegistrationModal" tabindex="-1" aria-labelledby="RegistrationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="RegistrationModalLabel">Регистрация</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="registerForm" action="/auth/register/" method="post">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="RegistrationFormControlInput" class="form-label">Имя пользователя</label>
+                            <input type="text" class="form-control" id="RegistrationFormControlInput" name="userName" placeholder="Username">
+                        </div>
+                        <div class="mb-3">
+                            <label for="RegistrationInputPassword5" class="form-label">Пароль</label>
+                            <input type="password" id="RegistrationInputPassword5" class="form-control" name="password" aria-describedby="passwordHelpBlock">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                        <button type="submit" class="btn btn-primary">Отправить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+<div id="alert" class="alert d-none" role="alert">
+    
+</div>
+</body>
+</html>

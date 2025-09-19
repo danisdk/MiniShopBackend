@@ -1,0 +1,22 @@
+﻿@model IEnumerable<Product>
+@{
+    Layout = "/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row row-cols-1 row-cols-md-4 g-4">
+    @foreach (Product product in Model)
+    {
+        <div class="col">
+            <div class="card">
+                <img src="@product.Image?.FilePath" class="card-img-top" alt="image empty">
+                <div class="card-body">
+                    <h5 class="card-title">@product.Name</h5>
+                    <p class="card-text">@product.Description</p>
+                </div>
+                <div class="card-footer">
+                    <p class="card-text text-end">Цена: @product.Price</p>
+                </div>
+            </div>
+        </div>
+    }
+</div>

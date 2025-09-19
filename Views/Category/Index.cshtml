@@ -1,0 +1,29 @@
+﻿@model IEnumerable<Category>
+@{
+    Layout = "/Views/Shared/_Layout.cshtml";
+}
+
+<div>
+    <p class="fs-1 mb-0 text-start">Категории</p>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th scope="col">Id</th>
+            <th scope="col">Название</th>
+            <th scope="col">Метка</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (Category category in Model)
+        {
+            <a asp-action="/category/details/" asp-route-id="@category.Id">
+                <tr>
+                    <th scope="row">@category.Id</th>
+                    <td>@category.Name</td>
+                    <td>@category.Slug</td>
+                </tr>
+            </a>
+        }
+        </tbody>
+    </table>
+</div>

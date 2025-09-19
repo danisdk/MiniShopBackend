@@ -1,0 +1,14 @@
+﻿@model Category
+<div>
+    <p class="fs-1 mb-0 text-start">@Model.Name</p>
+    <form>
+        <div class="mb-3">
+            <label for="NameProductFormControlInput" class="form-label">Название</label>
+            <input name="Name" type="text" value="@Model.Name" class="form-control" id="NameProductFormControlInput" placeholder="Название">
+        </div>
+        <div class="mb-3">
+            <label for="SlugProductFormControlInput" class="form-label">Метка</label>
+            <input name="Slug" type="number" class="form-control" id="SlugProductFormControlInput" placeholder="Метка">
+        </div>
+    </form>
+</div>
