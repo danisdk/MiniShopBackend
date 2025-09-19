@@ -41,7 +41,7 @@ public class FileStructure
 
     public static string GetFilePathFromRelativePath(string relativePath)
     {
-        string fullPath = Path.Combine(relativePath.Split('/')).Replace(Constants.UploadUrl, "");
+        string fullPath = Path.Combine(relativePath.Replace(Constants.UploadUrl, "").Split("/"));
         return Path.Combine(Constants.UploadPath, fullPath);
     }
 

@@ -44,6 +44,7 @@ public abstract class BaseService<T> : IBaseService<T> where T : Base
         DbSet.Add(entity);
         AfterSaveActions.Add(() => AfterAddAsync(entity));
         await SaveAsync();
+        ContextData.Add("CreatedEntity", entity);
     }
 
     public virtual Task AfterAddAsync(T entity)
@@ -58,6 +59,7 @@ public abstract class BaseService<T> : IBaseService<T> where T : Base
         Mapper.Map(updatedEntity, entityFromDb);
         AfterSaveActions.Add(() => AfterUpdateAsync(entityFromDb));
         await SaveAsync();
+        ContextData.Add("UpdatedEntity", entityFromDb);
     }
 
     public virtual Task AfterUpdateAsync(T entity)

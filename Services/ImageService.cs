@@ -1,7 +1,9 @@
-﻿using AutoMapper;
+﻿using System.Xml;
+using AutoMapper;
 using MiniShop.Models;
 using MiniShop.Models.Responses;
 using MiniShop.Services.Structures;
+using EnvironmentName = Microsoft.AspNetCore.Hosting.EnvironmentName;
 
 namespace MiniShop.Services;
 
@@ -15,7 +17,9 @@ public class ImageService : FrozenService<Image>
     {
         IFormFile? file = PopContextValue<IFormFile>("Image");
         if (file == null)
+        {
             throw new FileNotFoundException("Файл не передан");
+        }
         if (file.Length > Constants.MaxFileSize)
         {
             throw new FileTooLargeException(
@@ -25,6 +29,7 @@ public class ImageService : FrozenService<Image>
         FileStructure fileStructure = await FileStructure.UploadFile(file);
         Image image = Mapper.Map<FileStructure, Image>(fileStructure);
         image.Name = entity.Name;
+        image.FilePath = fileStructure.FullPath;
         await base.AddAsync(image);
     }
 
@@ -40,6 +45,7 @@ public class ImageService : FrozenService<Image>
             );
         }
         string fullPath = FileStructure.GetFilePathFromRelativePath(entity.FilePath);
+        Logger.LogInformation($"fullPath: {fullPath}");
         if(File.Exists(fullPath))
         {
             File.Delete(fullPath);
@@ -47,6 +53,7 @@ public class ImageService : FrozenService<Image>
         FileStructure fileStructure = await FileStructure.UploadFile(file);
         Image imageForUpdate = Mapper.Map<FileStructure, Image>(fileStructure);
         imageForUpdate.Name = entityToUpdate.Name;
+        imageForUpdate.FilePath = fileStructure.FullPath;
         await base.UpdateAsync(entity, imageForUpdate);
     }
 
@@ -60,15 +67,14 @@ public class ImageService : FrozenService<Image>
         await base.DeleteAsync(entity);
     }
 
-    public override Task AfterDeleteAsync(Image entity)
+    public override async Task AfterDeleteAsync(Image entity)
     {
-        base.AfterDeleteAsync(entity);
+        await base.AfterDeleteAsync(entity);
         string fullPath = FileStructure.GetFilePathFromRelativePath(entity.FilePath);
         if(File.Exists(fullPath))
         {
             File.Delete(fullPath);
         }
-        return Task.CompletedTask;
     }
 }
 

@@ -60,7 +60,7 @@ public class ImageController : Controller
     public async Task<IActionResult> CreateImage([FromForm] ImageRequest imageRequest)
     {
         _imageService.SetContextValue("Image", imageRequest.File);
-        Image image = _mapper.Map<ImageRequest, Image>(imageRequest);
+        Image? image = _mapper.Map<ImageRequest, Image>(imageRequest);
         try
         {
             await _imageService.AddAsync(image);
@@ -73,8 +73,8 @@ public class ImageController : Controller
         {
             return StatusCode(413, ex.Message);
         }
-        
-        if (image.Id > 0)
+        image = _imageService.PopContextValue<Image>("CreatedEntity");
+        if (image is not null && image.Id > 0)
         {
             return Created($"/api/image/{image.Id}", await GetImage(image.Id));
         }
@@ -104,7 +104,7 @@ public class ImageController : Controller
         {
             return StatusCode(413, ex.Message);
         }
-        return Ok(await GetImage(image.Id));
+        return await GetImage(image.Id);
     }
 
     [Authorize]
