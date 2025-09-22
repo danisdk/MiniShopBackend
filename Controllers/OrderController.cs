@@ -16,39 +16,68 @@ public class OrderController : Controller
 {
     private ApplicationContext _context;
     private IPaginationService<OrderResponse> _paginationService;
+    private IPaginationService<OrderProductResponse> _paginationServiceOrderProduct;
     private IBaseService<Order> _orderService;
     private IBaseService<OrderProduct> _orderProductService; 
     private IMapper _mapper;
     
     public OrderController(
         ApplicationContext context, IBaseService<Order> orderService, IBaseService<OrderProduct> orderProductService,
-        IPaginationService<OrderResponse> paginationService, IMapper mapper
+        IPaginationService<OrderResponse> paginationService, IMapper mapper, 
+        IPaginationService<OrderProductResponse> paginationServiceOrderProduct
         )
     {
         _context = context;
         _paginationService = paginationService;
         _orderService = orderService;
         _orderProductService = orderProductService;
+        _paginationServiceOrderProduct = paginationServiceOrderProduct;
         _mapper = mapper;
     }
     
-
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetOrdersList(int pageNumber = 1, int pageSize = 100)
     {
-        IQueryable<OrderResponse> ordersQuery = _context.Orders.OrderByDescending(
+        User? currentUser = HttpContext.Items["CurrentUser"] as User;
+        if (currentUser == null)
+        {
+            return Unauthorized();
+        }
+        IQueryable<OrderResponse> ordersQuery = _context.Orders.Where(o => o.UserId == currentUser.Id).OrderByDescending(
             order => order.Id
             ).ProjectTo<OrderResponse>(_mapper.ConfigurationProvider).AsQueryable();
         PagedResult<OrderResponse> result = await _paginationService.GetPagedAsync(ordersQuery, pageNumber, pageSize);
         return Ok(result);
     }
     
+    [Authorize]
+    [HttpGet("{id}/products")]
+    public async Task<IActionResult> GetOrderProductsList(int id, int pageNumber = 1, int pageSize = 100)
+    {
+        IQueryable<OrderProductResponse> orderProductsQuery = _context.OrderProducts.Where(
+                o => o.OrderId == id
+            ).OrderByDescending(
+                order => order.Id
+            ).ProjectTo<OrderProductResponse>(_mapper.ConfigurationProvider).AsQueryable();
+        PagedResult<OrderProductResponse> result = await _paginationServiceOrderProduct.GetPagedAsync(orderProductsQuery, pageNumber, pageSize);
+        return Ok(result);
+    }
+    
+    [Authorize]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetOrder(int id)
     {
-        OrderResponse? orderResponse = await _context.Orders.ProjectTo<OrderResponse>(
-            _mapper.ConfigurationProvider
-            ).FirstOrDefaultAsync(o => o.Id == id);
+        User? currentUser = HttpContext.Items["CurrentUser"] as User;
+        if (currentUser == null)
+        {
+            return Unauthorized();
+        }
+        OrderResponse? orderResponse = await _context.Orders.Where(
+                o => o.Id == id && o.UserId == currentUser.Id
+            ).ProjectTo<OrderResponse>(
+                _mapper.ConfigurationProvider
+            ).FirstOrDefaultAsync();
         if (orderResponse is null)
         {
             return NotFound();
@@ -73,14 +102,14 @@ public class OrderController : Controller
         
         if (order.Id > 0)
         {
-            return Created($"/api/product/{order.Id}", await GetOrder(order.Id));
+            return Created($"/api/order/{order.Id}", await GetOrder(order.Id));
         }
         return BadRequest();
     }
     
     [Authorize]
     [HttpPost("{id}/add-product")]
-    public async Task<IActionResult> AddProductInOrder(int id, int productId, int quantity, int? orderProductId)
+    public async Task<IActionResult> AddProductInOrder(int id, OrderProductAdd orderProductAdd)
     {
         Order? order = await _context.Orders.FindAsync(id);
         if (order is null)
@@ -91,15 +120,15 @@ public class OrderController : Controller
         {
             return BadRequest("Заказ уже оплачен");
         }
-
+        _orderProductService.SetContextValue("order", order);
         OrderProduct? orderProduct;
-        if (orderProductId is not null)
+        if (orderProductAdd.OrderProductId is not null)
         {
-            orderProduct = await _context.OrderProducts.FindAsync(orderProductId);
+            orderProduct = await _context.OrderProducts.FindAsync(orderProductAdd.OrderProductId);
         }
         else
         {
-            orderProduct = await _context.OrderProducts.Where(op => op.OrderId == order.Id && op.ProductId == productId).FirstOrDefaultAsync();
+            orderProduct = await _context.OrderProducts.Where(op => op.OrderId == order.Id && op.ProductId == orderProductAdd.ProductId).FirstOrDefaultAsync();
         }
 
         if (orderProduct is null)
@@ -107,10 +136,9 @@ public class OrderController : Controller
             return BadRequest("Не найден для какого товара заказ");
         }
         OrderProduct orderProductForUpdate = new OrderProduct();
-        orderProductForUpdate.Quantity = quantity;
+        orderProductForUpdate.Quantity = orderProductAdd.Quantity;
         await _orderProductService.UpdateAsync(orderProduct, orderProductForUpdate);
-        _orderProductService.SetContextValue("order", order);
-        return Ok(await GetOrder(order.Id));
+        return await GetOrder(order.Id);
     }
     
     [Authorize]
@@ -128,6 +156,7 @@ public class OrderController : Controller
             return BadRequest("Заказ уже оплачен");
         }
         Order orderForUpdate = new Order();
+        orderForUpdate.OrderDateTime = DateTime.UtcNow;
         orderForUpdate.IsPaid = true;
         await _orderService.UpdateAsync(order, orderForUpdate);
         return await GetOrder(order.Id);
@@ -159,6 +188,10 @@ public class OrderController : Controller
         Order? order = await _context.Orders.FindAsync(id);
         if (order is not null)
         {
+            if (order.IsPaid)
+            {
+                return BadRequest("Заказ оплачен");
+            }
             await _orderService.DeleteAsync(order);
             return Ok();
         }

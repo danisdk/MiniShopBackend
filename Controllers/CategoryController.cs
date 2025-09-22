@@ -36,7 +36,7 @@ public class CategoryController : Controller
         IQueryable<Category> categoriesQuery = _context.Categories.OrderByDescending(c => c.Id);
         if (!string.IsNullOrEmpty(filter))
         {
-            categoriesQuery = categoriesQuery.Where(category => category.Name.Contains(filter));
+            categoriesQuery = categoriesQuery.Where(category => category.Name.ToLower().Contains(filter.ToLower()));
         }
         IQueryable<CategoryResponse> categoriesResponseQuery = 
             categoriesQuery.ProjectTo<CategoryResponse>(_mapper.ConfigurationProvider).AsQueryable();

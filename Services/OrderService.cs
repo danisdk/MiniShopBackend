@@ -35,7 +35,13 @@ public class OrderService : FrozenService<Order>
                 ).Select(
                 o => o.OrderProducts.Sum(op => op.Quantity * op.Product.Price)
                 ).FirstOrDefaultAsync();
-        entityToUpdate.Total = total;
+        entity.Total = total;
+        entity.IsPaid = entityToUpdate.IsPaid;
+        if (entityToUpdate.OrderDateTime is not null)
+        {
+            entity.OrderDateTime = entityToUpdate.OrderDateTime;
+        }
+        SetContextValue("IgnoreMap", true);
         await base.UpdateAsync(entity, entityToUpdate);
     }
     

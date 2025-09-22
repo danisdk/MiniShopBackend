@@ -23,6 +23,6 @@ public interface IBaseService<T> where T : class
 
     TVal? GetContextValue<TVal>(string key);
 
-    TVal? PopContextValue<TVal>(string key);
+    TVal? PopContextValue<TVal>(string key, TVal? defaultValue = default);
     
 }

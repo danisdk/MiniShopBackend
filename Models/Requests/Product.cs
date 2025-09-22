@@ -8,3 +8,8 @@ public class ProductRequest
     public int? ImageId { get; set; }
     public int? CategoryId { get; set; }
 }
+
+public class ProductOnlyIdRequest
+{
+    public int Id { get; set; }
+}

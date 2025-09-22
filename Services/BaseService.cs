@@ -56,7 +56,10 @@ public abstract class BaseService<T> : IBaseService<T> where T : Base
 
     public virtual async Task UpdateAsync(T entityFromDb, T updatedEntity)
     {
-        Mapper.Map(updatedEntity, entityFromDb);
+        if (!PopContextValue<bool>("IgnoreMap", false))
+        {
+            Mapper.Map(updatedEntity, entityFromDb);
+        }
         AfterSaveActions.Add(() => AfterUpdateAsync(entityFromDb));
         await SaveAsync();
         ContextData.Add("UpdatedEntity", entityFromDb);
@@ -112,7 +115,7 @@ public abstract class BaseService<T> : IBaseService<T> where T : Base
         return default;
     }
     
-    public TVal? PopContextValue<TVal>(string key)
+    public TVal? PopContextValue<TVal>(string key, TVal defaultValue = default)
     {
         if (ContextData.TryGetValue(key, out var val))
         {
@@ -120,7 +123,7 @@ public abstract class BaseService<T> : IBaseService<T> where T : Base
             if (val is TVal typed)
                 return typed;
         }
-        return default;
+        return defaultValue;
     }
     
 }

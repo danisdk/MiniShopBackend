@@ -88,7 +88,7 @@ public class ProductController : Controller
 
     [Authorize]
     [HttpPost("add-product-in-order")]
-    public async Task<IActionResult> AddProductInOrder([FromBody] int productId)
+    public async Task<IActionResult> AddProductInOrder([FromBody] ProductOnlyIdRequest product)
     {
         User? currentUser = HttpContext.Items["CurrentUser"] as User;
         if (currentUser is null)
@@ -108,25 +108,24 @@ public class ProductController : Controller
                 return Unauthorized();
             }
         }
-
-        OrderProduct? orderProduct = await _context.OrderProducts.Where(op => op.OrderId == order.Id && op.ProductId == productId).FirstOrDefaultAsync();
+        
+        _orderProductService.SetContextValue("order", order);
+        OrderProduct? orderProduct = await _context.OrderProducts.Where(op => op.OrderId == order.Id && op.ProductId == product.Id).FirstOrDefaultAsync();
         if (orderProduct is null)
         {
             orderProduct = new OrderProduct();
             orderProduct.OrderId = order.Id;
-            orderProduct.ProductId = productId;
+            orderProduct.ProductId = product.Id;
             orderProduct.Quantity = 1;
             await _orderProductService.AddAsync(orderProduct);
         }
         else
         {
-            OrderProduct orderProductForUpdate = new OrderProduct();
-            orderProductForUpdate.Quantity = orderProduct.Quantity + 1;
-            await _orderProductService.UpdateAsync(orderProduct, orderProductForUpdate);
+            orderProduct.Quantity += 1;
+            await _orderProductService.UpdateAsync(orderProduct, orderProduct);
         }
-
-        _orderProductService.SetContextValue("order", order);
-        return Ok("Товар успешно добавлен в корзину");
+        
+        return Ok(new { message = "Товар успешно добавлен" });
     }
 
     [Authorize]

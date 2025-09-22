@@ -11,5 +11,5 @@ public class OrderResponse
     public DateTime? OrderDateTime { get; set; }
     public Decimal Total { get; set; }
     public bool IsPaid { get; set; }
-    public List<OrderProduct> OrderProducts { get; set; }
+    public List<OrderProductResponse> OrderProducts { get; set; }
 }
