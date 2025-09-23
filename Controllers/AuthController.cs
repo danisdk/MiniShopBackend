@@ -93,6 +93,29 @@ public class AuthController : ControllerBase
         };
         return Ok(registerResponse);
     }
+    
+    [Authorize]
+    [HttpPost("refresh-password")]
+    public async Task<IActionResult> RefreshPassword([FromBody] RefreshPasswordRequest request)
+    {
+        User? currentUser = HttpContext.Items["CurrentUser"] as User;
+        if (currentUser == null)
+        {
+            return Unauthorized();
+        }
+        
+        PasswordHasher<User> hasher = new PasswordHasher<User>();
+        currentUser.Password = hasher.HashPassword(currentUser, request.Password);
+        _context.Users.Update(currentUser);
+        await _context.SaveChangesAsync();
+        _logger.LogInformation($"Пользователь: {currentUser.Id} обновил пароль");
+        RegisterResponse registerResponse = new RegisterResponse
+        {
+            UserId = currentUser.Id,
+            UserName = currentUser.UserName
+        };
+        return Ok(registerResponse);
+    }
 
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest refreshToken)

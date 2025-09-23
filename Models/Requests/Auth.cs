@@ -6,6 +6,11 @@ public class RegisterRequest
     public string Password { get; set; }
 }
 
+public class RefreshPasswordRequest
+{
+    public string Password { get; set; }
+}
+
 public class RefreshTokenRequest
 {
     public string RefreshToken { get; set; }
