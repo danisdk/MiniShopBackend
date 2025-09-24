@@ -15,6 +15,10 @@ var builder = WebApplication.CreateBuilder(args);
 AuthOptions.Init(builder.Configuration);
 
 string connection = builder.Configuration.GetConnectionString("LocalHostConnection")!;
+if (builder.Environment.IsProduction())
+{
+    connection = builder.Configuration.GetConnectionString("DefaultConnection")!;
+}
 
 builder.Services.AddCors();
 
@@ -86,7 +90,9 @@ app.UseExceptionHandler("/error");
 
 app.UseMiddleware<RequestTimingMiddleware>();
 
-app.UseCors(options => options.WithOrigins("http://localhost:4200").AllowAnyHeader().AllowAnyMethod());
+string[] corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()!;
+
+app.UseCors(options => options.WithOrigins(corsOrigins).AllowAnyHeader().AllowAnyMethod());
 
 app.UseStaticFiles();
 
