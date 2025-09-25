@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
@@ -91,6 +92,11 @@ app.UseExceptionHandler("/error");
 app.UseMiddleware<RequestTimingMiddleware>();
 
 string[] corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()!;
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 
 app.UseCors(options => options.WithOrigins(corsOrigins).AllowAnyHeader().AllowAnyMethod());
 
